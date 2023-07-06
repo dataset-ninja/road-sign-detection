@@ -1,12 +1,14 @@
-import supervisely as sly
 import os
-from dataset_tools.convert import unpack_if_archive
-import src.settings as s
+import xml.etree.ElementTree as ET
 from urllib.parse import unquote, urlparse
-from supervisely.io.fs import get_file_name, get_file_size
-import shutil
 
+import supervisely as sly
+from dataset_tools.convert import unpack_if_archive
+from supervisely.io.fs import file_exists, get_file_name, get_file_size
 from tqdm import tqdm
+
+import src.settings as s
+
 
 def download_dataset(teamfiles_dir: str) -> str:
     """Use it for large datasets to convert them on the instance"""
@@ -53,21 +55,81 @@ def download_dataset(teamfiles_dir: str) -> str:
     return dataset_path
 
 
-
 def convert_and_upload_supervisely_project(
     api: sly.Api, workspace_id: int, project_name: str
 ) -> sly.ProjectInfo:
-    ### Function should read local dataset and upload it to Supervisely project, then return project info.###
-    raise NotImplementedError("The converter should be implemented manually.")
+    dataset_path = "/Users/iwatkot/Downloads/ninja/datasets/road-sign-detection"
+    images_folder = "images"
+    bboxes_folder = "annotations"
+    bboxes_ext = ".xml"
+    ds_name = "ds"
+    batch_size = 30
 
-    # dataset_path = "/local/path/to/your/dataset" # general way
-    # dataset_path = download_dataset(teamfiles_dir) # for large datasets stored on instance
+    def create_ann(image_path):
+        labels = []
 
-    # ... some code here ...
+        file_name = get_file_name(image_path)
 
-    # sly.logger.info('Deleting temporary app storage files...')
-    # shutil.rmtree(storage_dir)
+        ann_path = os.path.join(bboxes_path, file_name + bboxes_ext)
 
-    # return project
+        if file_exists(ann_path):
+            tree = ET.parse(ann_path)
+            root = tree.getroot()
 
+            img_height = int(root.find(".//height").text)
+            img_wight = int(root.find(".//width").text)
 
+            objects = root.findall(".//object")
+            for curr_obj in objects:
+                name = curr_obj.find(".//name").text
+                obj_class = meta.get_obj_class(name)
+                curr_coord = curr_obj.find(".//bndbox")
+                left = int(curr_coord[0].text)
+                top = int(curr_coord[1].text)
+                right = int(curr_coord[2].text)
+                bottom = int(curr_coord[3].text)
+
+                rect = sly.Rectangle(left=left, top=top, right=right, bottom=bottom)
+                label = sly.Label(rect, obj_class)
+                labels.append(label)
+
+        return sly.Annotation(img_size=(img_height, img_wight), labels=labels)
+
+    obj_class_trafficlight = sly.ObjClass("trafficlight", sly.Rectangle)
+    obj_class_stop = sly.ObjClass("stop", sly.Rectangle)
+    obj_class_speedlimit = sly.ObjClass("speedlimit", sly.Rectangle)
+    obj_class_crosswalk = sly.ObjClass("crosswalk", sly.Rectangle)
+
+    project = api.project.create(workspace_id, project_name, change_name_if_conflict=True)
+
+    meta = sly.ProjectMeta(
+        obj_classes=[
+            obj_class_trafficlight,
+            obj_class_stop,
+            obj_class_speedlimit,
+            obj_class_crosswalk,
+        ]
+    )
+    api.project.update_meta(project.id, meta.to_json())
+
+    images_path = os.path.join(dataset_path, images_folder)
+    bboxes_path = os.path.join(dataset_path, bboxes_folder)
+
+    dataset = api.dataset.create(project.id, ds_name, change_name_if_conflict=True)
+
+    images_names = [im_name for im_name in os.listdir(images_path)]
+
+    progress = sly.Progress("Create dataset {}".format(ds_name), len(images_names))
+
+    for images_names_batch in sly.batched(images_names, batch_size=batch_size):
+        images_pathes_batch = [os.path.join(images_path, im_name) for im_name in images_names_batch]
+
+        img_infos = api.image.upload_paths(dataset.id, images_names_batch, images_pathes_batch)
+        img_ids = [im_info.id for im_info in img_infos]
+
+        anns = [create_ann(image_path) for image_path in images_pathes_batch]
+        api.annotation.upload_anns(img_ids, anns)
+
+        progress.iters_done_report(len(images_names_batch))
+
+    return project
