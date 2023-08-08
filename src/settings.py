@@ -24,7 +24,7 @@ APPLICATIONS: List[Union[Industry, Domain, Research]] = [
     Industry.Utilities(is_used=False),
     Industry.Automotive(is_used=False),
 ]
-CATEGORY: Category = Category.EnergyAndUtilities()
+CATEGORY: Category = Category.EnergyAndUtilities(extra=Category.SelfDriving())
 
 CV_TASKS: List[CVTask] = [CVTask.ObjectDetection()]
 ANNOTATION_TYPES: List[AnnotationType] = [AnnotationType.ObjectDetection()]
@@ -50,7 +50,12 @@ DOWNLOAD_ORIGINAL_URL: Optional[
 ] = "https://www.kaggle.com/datasets/andrewmvd/road-sign-detection/download?datasetVersionNumber=1"
 # Optional link for downloading original dataset (e.g. "https://some.com/dataset/download")
 
-CLASS2COLOR: Optional[Dict[str, List[str]]] = None
+CLASS2COLOR: Optional[Dict[str, List[str]]] = {
+    "speedlimit": [230, 25, 75],
+    "crosswalk": [60, 180, 75],
+    "trafficlight": [255, 225, 25],
+    "stop": [145, 30, 180],
+}
 # If specific colors for classes are needed, fill this dict (e.g. {"class1": [255, 0, 0], "class2": [0, 255, 0]})
 
 PAPER: Optional[str] = None
