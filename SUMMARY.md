@@ -1,4 +1,4 @@
-**Road Sign Detection** is a dataset for object detection task. Possible applications of the dataset could be in the utilities and automotive industries. 
+**Road Sign Detection** is a dataset for an object detection task. Possible applications of the dataset could be in the utilities and automotive industries. 
 
 The dataset consists of 877 images with 1244 labeled objects belonging to 4 different classes including *speedlimit*, *crosswalk*, *trafficlight*, and other: *stop*.
 
