@@ -1,6 +1,6 @@
 Dataset **Road Sign Detection** can be downloaded in [Supervisely format](https://developer.supervisely.com/api-references/supervisely-annotation-json-format):
 
- [Download](https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/A/a/nQ/88EB8XSQ6iWONxXg1AE0jPzqnH585dvXkzKoyIgnJIiuMk6BvoYw33HmiB1TBsJDgDgUeSEgxrQXsC9M3lfa9NBwJijfPMfOHY7cxUcHaPkUi1U79ym8pkysqrx7.tar)
+ [Download](https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/2/x/nl/jk3s4ctDPaGARIoZz9MZ5U5btHzXvwdyomagubnGo2tIea43UBFiCBNTfbmsBvM6gk5XaISG5cL29aWKXuq9WKfmYAic1zlgZ75KtFEQweR1EI9AhndMBKDcycqM.tar)
 
 As an alternative, it can be downloaded with *dataset-tools* package:
 ``` bash
